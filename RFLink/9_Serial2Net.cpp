@@ -38,7 +38,7 @@ namespace RFLink {
       }
 
       void enabledTcpKeepalive() {
-        int keepAlive = 1; // used only with ESP32
+        //int keepAlive = 1; // used only with ESP32
         int keepIdle = 30;
         int keepInterval = 3;
         int keepCount = 3;

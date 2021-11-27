@@ -25,12 +25,12 @@
 #include "4_Display.h"
 #include "5_Plugin.h"
 #include "6_MQTT.h"
-#include "8_OLED.h"
+//#include "8_OLED.h"
 #include "9_Serial2Net.h"
 #include "10_Wifi.h"
 #include "11_Config.h"
 #include "12_Portal.h"
-#include "13_OTA.h"
+//#include "13_OTA.h"
 
 #if (defined(__AVR_ATmega328P__) || defined(__AVR_ATmega2560__))
 #include <avr/power.h>
@@ -202,7 +202,7 @@ namespace RFLink {
       }
 
       Radio::mainLoop();
-      OTA::mainLoop();
+      //OTA::mainLoop();
     }
 
     void sendMsgFromBuffer() {
@@ -450,6 +450,10 @@ namespace RFLink {
         RFLink::sendRawPrint(F("Failed to obtain time"));
       }
 
+      // Little Patch to get the right boot time when connected to wifi ... Bug ?
+      if (timeAtBoot.tv_sec == 0) {
+        gettimeofday(&timeAtBoot, NULL);
+      }
       output["uptime"] = now.tv_sec - timeAtBoot.tv_sec;
 
       output["heap_free"] = ESP.getFreeHeap();
@@ -463,6 +467,12 @@ namespace RFLink {
       output["sw_version"] = buffer;
 
     }
+
+    int64_t xx_time_get_time() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (tv.tv_sec * 1000LL + (tv.tv_usec / 1000LL));
+}
 
 }
 

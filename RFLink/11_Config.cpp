@@ -62,11 +62,11 @@ namespace RFLink
             #endif // RFLINK_PORTAL_DISABLED
 #endif
             &RFLink::Signal::configItems[0],
-            &RFLink::Radio::configItems[0],
+          //  &RFLink::Radio::configItems[0],
     };
 #define configItemListsSize (sizeof(configItemLists) / sizeof(ConfigItem *))
 
-    StaticJsonDocument<4096> doc;
+    StaticJsonDocument<2048> doc;    // it use ram , if too low it will probably brake "Signals" api data. Default value 4096 , 1024 not recommanded
 
     void resetConfig()
     {

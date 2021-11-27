@@ -13,6 +13,9 @@
 
 
 #include <SPI.h>
+
+/*
+// Optimization For Sonoff RF Bridge
 #include "RFM69/RFM69OOK.h"
 #include "RFM69/RFM69OOKregisters.h"
 RFM69OOK radio;
@@ -23,7 +26,7 @@ Module radioLibModule(5, -1, 4, -1);
 SX1278 *radio_SX1278 = nullptr;
 SX1276 *radio_SX1276 = nullptr;
 RF69 *radio_RFM69 = nullptr;
-
+*/
 
 enum RssiThresholdTypesEnum {
   Undefined = -1,  // Keep this one first in the list
@@ -97,6 +100,7 @@ namespace RFLink { namespace Radio  {
 
     static_assert(sizeof(hardwareNames)/sizeof(char *) == HardwareType::HW_EOF_t+1, "hardwareNames has missing/extra names, please compare with HardwareType enum declarations");
 
+/*
 // All json variable names
     const char json_name_hardware[] = "hardware";
 
@@ -149,8 +153,12 @@ namespace RFLink { namespace Radio  {
             Config::ConfigItem(json_name_bitrate,     Config::SectionId::Radio_id, params::default_BitRate, paramsUpdatedCallback, true),
 
             Config::ConfigItem()
-    };
+    };*/
 
+
+
+
+/*
     void refreshParametersFromConfig() {
       States savedState = current_State;
       HardwareType newHardwareId = hardware;
@@ -393,9 +401,9 @@ namespace RFLink { namespace Radio  {
       }
 
     }
-
+ */
     void paramsUpdatedCallback() {
-      refreshParametersFromConfig();
+      //refreshParametersFromConfig();
     }
 
     int32_t getFrequency() 
@@ -409,25 +417,27 @@ namespace RFLink { namespace Radio  {
       int32_t result = getFrequency();
       switch(hardware)  
       {
-        case HardwareType::HW_RFM69CW_t:
-        case HardwareType::HW_RFM69HCW_t:
-          radio.setFrequency(newFrequency);
-          break;
-        case HardwareType::HW_SX1278_t:
-          radio_SX1278->setFrequency(newFrequency / 1000000.0);
-          break;
-        case HardwareType::HW_SX1276_t:
-          radio_SX1276->setFrequency(newFrequency / 1000000.0);
-          break;
-        case HardwareType::HW_RFM69NEW_t:
-          radio_RFM69->setFrequency(newFrequency / 1000000.0);
-          break;
+        // case HardwareType::HW_RFM69CW_t:
+        // case HardwareType::HW_RFM69HCW_t:
+        //   radio.setFrequency(newFrequency);
+        //   break;
+        // case HardwareType::HW_SX1278_t:
+        //   radio_SX1278->setFrequency(newFrequency / 1000000.0);
+        //   break;
+        // case HardwareType::HW_SX1276_t:
+        //   radio_SX1276->setFrequency(newFrequency / 1000000.0);
+        //   break;
+        // case HardwareType::HW_RFM69NEW_t:
+        //   radio_RFM69->setFrequency(newFrequency / 1000000.0);
+        //   break;
         default:
           return 0;  // other hardware cannot change its frequency
       }
       params::frequency = newFrequency;
       return result;
     }
+
+   
 
     HardwareType hardwareIDFromString(const char *name) {
       for(int i=0; i<hardwareNames_count; i++) {
@@ -551,6 +561,8 @@ namespace RFLink { namespace Radio  {
     {
       if(hardware == HardwareType::HW_basic_t)
         set_Radio_mode_generic(new_State, force);
+
+        /*
       else if( hardware == HardwareType::HW_RFM69CW_t || hardware == HardwareType::HW_RFM69HCW_t )
         //set_Radio_mode_RFM69_new(new_State);
         set_Radio_mode_RFM69(new_State, force);
@@ -560,12 +572,13 @@ namespace RFLink { namespace Radio  {
         set_Radio_mode_SX1278(new_State, force);
       else if( hardware == HardwareType::HW_SX1276_t )
         set_Radio_mode_SX1276(new_State, force);
+        */
       else
         Serial.printf_P(PSTR("Error while trying to switch Radio state: unknown hardware id '%i'\r\n"), new_State);
     }
 
     void setup() {
-      refreshParametersFromConfig();
+     // refreshParametersFromConfig();
     }
 
     void enableRX_generic()
@@ -636,7 +649,7 @@ namespace RFLink { namespace Radio  {
       pinMode(pins::TX_VCC, INPUT);
       pinMode(pins::TX_GND, INPUT);
     }
-
+/*
     void set_Radio_mode_RFM69(States new_State, bool force)
     {
       // @TODO : review compatibility with ASYNC mode
@@ -804,6 +817,9 @@ namespace RFLink { namespace Radio  {
       }
     }
 
+
+
+
     void set_Radio_mode_RFM69_new(States new_State, bool force)
     {
       // @TODO : review compatibility with ASYNC mode
@@ -868,14 +884,14 @@ namespace RFLink { namespace Radio  {
       }
     }
 
-
+*/
     float getCurrentRssi() {
-      if(hardware == HardwareType::HW_SX1278_t)
-        return radio_SX1278->getRSSI(true);
-      if(hardware == HardwareType::HW_SX1276_t)
-        return radio_SX1276->getRSSI(true);
-      if(hardware == HardwareType::HW_RFM69NEW_t)
-        return radio_RFM69->getRSSI();
+      // if(hardware == HardwareType::HW_SX1278_t)
+      //   return radio_SX1278->getRSSI(true);
+      // if(hardware == HardwareType::HW_SX1276_t)
+      //   return radio_SX1276->getRSSI(true);
+      // if(hardware == HardwareType::HW_RFM69NEW_t)
+      //   return radio_RFM69->getRSSI();
 
       return -9999.0F;
     }
@@ -901,19 +917,20 @@ namespace RFLink { namespace Radio  {
       bool success = false;
       hardware = newHardware;
 
-      if(newHardware == HardwareType::HW_SX1278_t){
-        success = initialize_SX1278();
-      }
-      else if(newHardware == HardwareType::HW_SX1276_t){
-        success = initialize_SX1276();
-      }
-      else if(newHardware == HardwareType::HW_RFM69CW_t || newHardware == HardwareType::HW_RFM69HCW_t){
-        success = initialize_RFM69_legacy();
-      }
-      else if(newHardware == HardwareType::HW_RFM69NEW_t){
-        success = initialize_RFM69();
-      }
-      else if(newHardware == HardwareType::HW_basic_t){
+      // if(newHardware == HardwareType::HW_SX1278_t){
+      //   success = initialize_SX1278();
+      // }
+      // else if(newHardware == HardwareType::HW_SX1276_t){
+      //   success = initialize_SX1276();
+      // }
+      // else if(newHardware == HardwareType::HW_RFM69CW_t || newHardware == HardwareType::HW_RFM69HCW_t){
+      //   success = initialize_RFM69_legacy();
+      // }
+      // else if(newHardware == HardwareType::HW_RFM69NEW_t){
+      //   success = initialize_RFM69();
+      // }
+      // else 
+      if(newHardware == HardwareType::HW_basic_t){
         success = true;
       }
       else {
@@ -930,6 +947,9 @@ namespace RFLink { namespace Radio  {
         Radio::set_Radio_mode(Radio::current_State, true);
       }
     }
+
+
+    /*
 
     bool initialize_SX1278() {
       radioLibModule = Module(pins::RX_CS, -1, pins::RX_RESET, -1);
@@ -1152,6 +1172,8 @@ namespace RFLink { namespace Radio  {
         radio.setHighPower(true);
       return true;
     }
+
+    */
 
     void mainLoop() {
       static time_t nextEnablementAttemptTime = 0;

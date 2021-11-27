@@ -11,7 +11,7 @@
 #include "9_Serial2Net.h"
 #include "11_Config.h"
 #include "10_Wifi.h"
-#include "13_OTA.h"
+//#include "13_OTA.h"
 
 #if defined(ESP8266)
 #include "ESP8266WiFi.h"
@@ -76,16 +76,16 @@ namespace RFLink { namespace Portal {
           RFLink::scheduleReboot(5);
         }
 
-        void serveApiFirmwareHttpUpdateGetStatus(AsyncWebServerRequest *request){
-          DynamicJsonDocument output(500);
-          JsonObject && root = output.to<JsonObject>();
-          OTA::getHttpUpdateStatus(root);
-          String buffer;
-          buffer.reserve(256);
-          serializeJson(output, buffer);
-          request->send(200, "application/json", buffer);
-        }
-
+        // void serveApiFirmwareHttpUpdateGetStatus(AsyncWebServerRequest *request){
+        //   DynamicJsonDocument output(500);
+        //   JsonObject && root = output.to<JsonObject>();
+        //   OTA::getHttpUpdateStatus(root);
+        //   String buffer;
+        //   buffer.reserve(256);
+        //   serializeJson(output, buffer);
+        //   request->send(200, "application/json", buffer);
+        // }
+/*
         void serveApiFirmwareUpdateFromUrl(AsyncWebServerRequest *request, JsonVariant &json)
         {
           if (not json.is<JsonObject>()) {
@@ -122,7 +122,7 @@ namespace RFLink { namespace Portal {
           }
 
           request->send(200, F("text/plain"), F("HTTP OTA scheduled"));
-        }
+        }*/
 
         void serverApiConfigPush(AsyncWebServerRequest *request, JsonVariant &json) {
           if (not json.is<JsonObject>()) {
@@ -236,9 +236,9 @@ namespace RFLink { namespace Portal {
           server.on(PSTR("/index.html"), HTTP_GET, serveIndexHtml);
           server.on(PSTR("/wifi"), HTTP_GET, serveIndexHtml);
           server.on(PSTR("/home"), HTTP_GET, serveIndexHtml);
-          server.on(PSTR("/radio"), HTTP_GET, serveIndexHtml);
+          //server.on(PSTR("/radio"), HTTP_GET, serveIndexHtml);
           server.on(PSTR("/signal"), HTTP_GET, serveIndexHtml);
-          server.on(PSTR("/firmware"), HTTP_GET, serveIndexHtml);
+          //server.on(PSTR("/firmware"), HTTP_GET, serveIndexHtml);
           server.on(PSTR("/services"), HTTP_GET, serveIndexHtml);
 
           server.on(PSTR("/api/config"), HTTP_GET, serverApiConfigGet);
@@ -246,14 +246,14 @@ namespace RFLink { namespace Portal {
 
           server.on(PSTR("/api/reboot"), HTTP_GET, serveApiReboot);
 
-          server.on(PSTR("/api/firmware/update"), HTTP_POST, handleFirmwareUpdateFinalResponse, handleChunksReception);
-          server.on(PSTR("/api/firmware/http_update_status"), HTTP_GET, serveApiFirmwareHttpUpdateGetStatus);
+          //server.on(PSTR("/api/firmware/update"), HTTP_POST, handleFirmwareUpdateFinalResponse, handleChunksReception);
+          //server.on(PSTR("/api/firmware/http_update_status"), HTTP_GET, serveApiFirmwareHttpUpdateGetStatus);
 
           AsyncCallbackJsonWebHandler* handler = new AsyncCallbackJsonWebHandler(PSTR("/api/config"), serverApiConfigPush, 4000);
           server.addHandler(handler);
 
-          handler = new AsyncCallbackJsonWebHandler(PSTR("/api/firmware/update_from_url"), serveApiFirmwareUpdateFromUrl, 1000);
-          server.addHandler(handler);
+          //handler = new AsyncCallbackJsonWebHandler(PSTR("/api/firmware/update_from_url"), serveApiFirmwareUpdateFromUrl, 1000);
+          //server.addHandler(handler);
 
         }
 
