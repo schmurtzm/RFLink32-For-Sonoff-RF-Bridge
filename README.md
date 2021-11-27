@@ -39,16 +39,15 @@ Removed functionnalities are : OTA, Online update, possibility to configure othe
 ### Flash :
 > To put in flashing mode, press the ‘pairing button’ while inserting the FTDI in USB.  
 > Then run the script tools\Flash_Sonoff_RF.bat . It will :  
->   - make a backup of the original firmware of your sonofff
+>   - ask you to disconnect and reconnect the sonoff in "flashing mode" for eatch step
+>   - make a backup of the original firmware of your sonoff
 >   - full erase of the esp8266
->   - ask you to disconnect and reconnect the sonoff in "flashing mode" 
 >   - flash the RFlink32 firmware
 
-> Then yo on your mobile phone and find the wifi access point called "RFLink-AP", connect to it and naviguate to adress : http://192.168.4.1  then you will be able to configure your own Wifi.
-> Alternatively you can configure the wifi by sending a command on serial port (with a software like termite) :
-> 10;config;set;{"wifi":{"client_enabled":true,"client_dhcp_enabled":true,"client_ssid":"MySSID","client_password":"MyPassword"}}
+> Then go on your mobile phone and find the wifi access point called "RFLink-AP", connect to it and naviguate to adress : http://192.168.4.1  then you will be able to configure your own Wifi.  
+> Alternatively you can configure the wifi by sending a command on serial port (with a software like termite) :  
+> ```10;config;set;{"wifi":{"client_enabled":true,"client_dhcp_enabled":true,"client_ssid":"MySSID","client_password":"MyPassword"}}```  
 > The new IP adress will be displayed on serial monitoring.
-
 > You can compile this code with platformio or you can download a compiled firmware and use the script on Windows) :
 
 ### Configure :
@@ -93,8 +92,8 @@ Removed functionnalities are : OTA, Online update, possibility to configure othe
     
 	As you can observe Rflink32 output offers a better understanding of the received RF frame.
 
-- The Rflink protocol is directly compatible with Home Assistant and it can add the entities automatically.
-- There are many example of the Rflink community to easily handle the Rflink protocol with your favorite software (Node Red, Home Assistant, Jeedom ,…)
+- The Rflink protocol is directly compatible with Home Assistant (it can add the entities for many sensors automatically) and many others home automation softwares.  
+- There are many example of the Rflink community to easily handle the Rflink protocol with your favorite software (Node Red, Home Assistant, Jeedom ,…)  
 - Futhermore you can extend the list of decrypted RF protocols with the Rflink protocols files.  
 
 ====================================================
