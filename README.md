@@ -95,7 +95,8 @@ Removed functionnalities are : OTA, Online update, possibility to configure othe
 
 - The Rflink protocol is directly compatible with Home Assistant and it can add the entities automatically.
 - There are many example of the Rflink community to easily handle the Rflink protocol with your favorite software (Node Red, Home Assistant, Jeedom ,…)
-- Futhermore you can extend the list of decrypted RF protocols with the Rflink protocols files.
+- Futhermore you can extend the list of decrypted RF protocols with the Rflink protocols files.  
+
 ====================================================
 # API : 
 ```/api/status```   : display the current status of the gateway (uptime, wifi state,  MQTT state, ser2net state, number of RF message received…)
@@ -122,3 +123,9 @@ API over serial (if you still have your usb FTDI connected to the Sonoff Rfbrige
 
 
 [Original RFlink32 Documentation](https://github.com/schmurtzm/RFLink32-For-Sonoff-RF-Bridge/blob/master/Original_RFlink32_Documentation.md)
+
+---
+
+Special Thanks to [Couin3](https://github.com/couin3/RFLink), [Erau](https://github.com/cpainchaud/RFLink32) and [many others](https://github.com/cpainchaud/RFLink32/graphs/contributors) for their awesome work on RFlink version which works on arduino, ESP8266 and ESP32 !  
+
+Come to [talk with us about RFlink-ESP and RFlink32 on discord](https://discord.gg/YqrPDHuNPP) !
