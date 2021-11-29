@@ -24,19 +24,20 @@ Removed functionnalities are : OTA, Online update, possibility to configure othe
 > (For older boards (R1 V1.0 and BOARD R1 V2.0) I recommend [this excellent documentation from ESPurna / Tinkerman](https://github.com/xoseperez/espurna/wiki/Hardware-Itead-Sonoff-RF-Bridge---Direct-Hack "this excellent documentation from ESPurna / Tinkerman") !)  
 > 
 >
-> > At the front, we cut the trace between the RF receiver and the en/decoder chip:  
-> > Connect the transmitter : 	USBTXD → pin 4 of the 6-legged chip (purple cable, bottom left pin in the image)  
+> > At the front, cut the trace between the RF receiver and the en/decoder chip. 
+> 
+> > Connect the receiver :  USBRXD → pin 5 of the 8 legged chip near the LEDs (near the buzzer in the image)
 >
-> > Connect the receiver :  USBRXD → pin 5 of the 8 legged chip near the LEDs (green cable, bottom right pin in the image)  
+> > Connect the transmitter : 	USBTXD → pin 4 of the 6-legged chip (bottom right pin in the image)  
 > 
 > > (As [Tinkerman from espurna](https://github.com/xoseperez/espurna/wiki/Hardware-Itead-Sonoff-RF-Bridge---Direct-Hack) said : " resistor : anything in the range 180-680 ohms, 1/4 or 1/8 W will do. The advantage of using a resistor is that if you inadvertently solder the wrong pins, the resistor will prevent any damage to the semiconductors.")
-> <img src="https://github.com/schmurtzm/RFLink32-For-Sonoff-RF-Bridge/blob/master/pictures/Sonoff_RF_Bridge_-_back.jpg" width="200" height="200">  
+> <img src="https://github.com/schmurtzm/RFLink32-For-Sonoff-RF-Bridge/blob/master/pictures/Sonoff_RF_Bridge_-_front.jpg" width="200" height="200">  
 > 
 > > At the back, we cut these 3 traces :
-> > Exactly as in the original mod for older versions, the 2 traces connect USB data with GPIOs, we’ll use to connect the receiver and transmitter directly to the ESP8285. If left connected, usb chargers may bridge them and nothing will work (or worse). 
-> > The last isolate cut is to isolate the en/decoder chip from the RF emitter.
+> > Exactly as in the original mod for older versions, the 2 traces (at bottom of the image) connect USB data with GPIOs, we’ll use to connect the receiver and transmitter directly to the ESP8285. If left connected, usb chargers may bridge them and nothing will work (or worse). 
+> > The last cut is (at the top) to isolate the en/decoder chip from the RF emitter.
 >
->   <img src="https://github.com/schmurtzm/RFLink32-For-Sonoff-RF-Bridge/blob/master/pictures/Sonoff_RF_Bridge_-_front.jpg" width="200" height="200">  
+>   <img src="https://github.com/schmurtzm/RFLink32-For-Sonoff-RF-Bridge/blob/master/pictures/Sonoff_RF_Bridge_-_back.jpg" width="200" height="200">  
 
 
 
