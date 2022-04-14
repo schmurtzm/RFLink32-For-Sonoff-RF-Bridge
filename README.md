@@ -2,13 +2,15 @@
 
 
 This is a customized version of RFlink32 for Sonoff RF Bridge.
+It is an updated version of https://github.com/schmurtzm/RFLink32-For-Sonoff-RF-Bridge to the latest sources of [RFlink32] including support for Web UI authentication (default login: rflink32 / 433mhz). 
+
 This powerful firmware supports to transmit decrypted RF frames with following protocols :
 - serial
 - ser2net ( serial interface over TCP)
 - MQTT
 
 It is entierely based on [RFlink32](https://github.com/cpainchaud/RFLink32 "RFlink32"), I have only configured the firmware to work out of the box with the Sonoff RF bridge and removed functionnalities to be able to run it on the ESP8285 of the Sonoff (only 1MB of memory).
-Removed functionnalities are : OTA, Online update, possibility to configure other RF receivers. The Original RFlink32 UI has been modified to remove these unvaible settings. [Here the modified UI repo](https://github.com/schmurtzm/rflink-webui "RFlink32 UI Modified").
+Removed functionnalities are : OTA, Online update, possibility to configure other RF receivers. The Original RFlink32 UI has been modified to remove these unvaible settings. [Here the modified UI repo](https://github.com/pstzh/rflink-webui "RFlink32 UI Modified").
 
 
 <img src="https://user-images.githubusercontent.com/7110113/143656552-5f4018af-b972-4762-a367-e4f44412a5c4.png" width="200" height="200"> <img src="https://user-images.githubusercontent.com/7110113/143656585-3943148c-ace1-451a-be2e-974c943e7f06.png" width="200" height="200">

@@ -14,19 +14,14 @@
 
 #include <SPI.h>
 
-/*
-// Optimization For Sonoff RF Bridge
-#include "RFM69/RFM69OOK.h"
-#include "RFM69/RFM69OOKregisters.h"
-RFM69OOK radio;
-
+#ifndef SONOFF_RFBRIDGE
 #include <RadioLib.h>
 
 Module radioLibModule(5, -1, 4, -1);
 SX1278 *radio_SX1278 = nullptr;
 SX1276 *radio_SX1276 = nullptr;
 RF69 *radio_RFM69 = nullptr;
-*/
+#endif // not SONOFF_RFBRIDGE
 
 enum RssiThresholdTypesEnum {
   Undefined = -1,  // Keep this one first in the list
@@ -92,7 +87,6 @@ namespace RFLink { namespace Radio  {
             "RFM69CW",
             "RFM69HCW",
             "SX1278",
-            "RFM69TEST_RADIOLIB",
             "SX1276",
             "EOF" // this is always the last one and matches index HardareType::HW_EOF_t
     };
@@ -100,7 +94,7 @@ namespace RFLink { namespace Radio  {
 
     static_assert(sizeof(hardwareNames)/sizeof(char *) == HardwareType::HW_EOF_t+1, "hardwareNames has missing/extra names, please compare with HardwareType enum declarations");
 
-/*
+#ifndef SONOFF_RFBRIDGE
 // All json variable names
     const char json_name_hardware[] = "hardware";
 
@@ -128,7 +122,7 @@ namespace RFLink { namespace Radio  {
 
 
     Config::ConfigItem configItems[] =  {
-            Config::ConfigItem(json_name_hardware,  Config::SectionId::Radio_id, hardwareNames[HardwareType::HW_basic_t], paramsUpdatedCallback),
+            Config::ConfigItem(json_name_hardware,  Config::SectionId::Radio_id, hardwareNames[RFLink_default_Radio_HardwareType], paramsUpdatedCallback),
 
             Config::ConfigItem(json_name_rx_data,   Config::SectionId::Radio_id, PIN_RF_RX_DATA_0, paramsUpdatedCallback),
             Config::ConfigItem(json_name_rx_vcc,    Config::SectionId::Radio_id, PIN_RF_RX_VCC_0, paramsUpdatedCallback),
@@ -153,12 +147,8 @@ namespace RFLink { namespace Radio  {
             Config::ConfigItem(json_name_bitrate,     Config::SectionId::Radio_id, params::default_BitRate, paramsUpdatedCallback, true),
 
             Config::ConfigItem()
-    };*/
+    };
 
-
-
-
-/*
     void refreshParametersFromConfig() {
       States savedState = current_State;
       HardwareType newHardwareId = hardware;
@@ -401,9 +391,12 @@ namespace RFLink { namespace Radio  {
       }
 
     }
- */
+#endif // not SONOFF_RFBRIDGE
+
     void paramsUpdatedCallback() {
-      //refreshParametersFromConfig();
+#ifndef SONOFF_RFBRIDGE
+      refreshParametersFromConfig();
+#endif // not SONOFF_RFBRIDGE
     }
 
     int32_t getFrequency() 
@@ -414,30 +407,30 @@ namespace RFLink { namespace Radio  {
     /// Sets the frequency of the transceiver, and returns the previously set frequency
     int32_t setFrequency(int32_t newFrequency)
     {
+#ifdef SONOFF_RFBRIDGE
+      return 0;  // SONOFF hardware cannot change its frequency
+#else // not SONOFF_RFBRIDGE
       int32_t result = getFrequency();
       switch(hardware)  
       {
-        // case HardwareType::HW_RFM69CW_t:
-        // case HardwareType::HW_RFM69HCW_t:
-        //   radio.setFrequency(newFrequency);
-        //   break;
-        // case HardwareType::HW_SX1278_t:
-        //   radio_SX1278->setFrequency(newFrequency / 1000000.0);
-        //   break;
-        // case HardwareType::HW_SX1276_t:
-        //   radio_SX1276->setFrequency(newFrequency / 1000000.0);
-        //   break;
-        // case HardwareType::HW_RFM69NEW_t:
-        //   radio_RFM69->setFrequency(newFrequency / 1000000.0);
-        //   break;
+        case HardwareType::HW_RFM69CW_t:
+        case HardwareType::HW_RFM69HCW_t:
+          radio_RFM69->setFrequency(newFrequency / 1000000.0);
+          break;
+        case HardwareType::HW_SX1278_t:
+          radio_SX1278->setFrequency(newFrequency / 1000000.0);
+          break;
+        case HardwareType::HW_SX1276_t:
+          radio_SX1276->setFrequency(newFrequency / 1000000.0);
+          break;
+
         default:
           return 0;  // other hardware cannot change its frequency
       }
       params::frequency = newFrequency;
       return result;
+#endif // not SONOFF_RFBRIDGE
     }
-
-   
 
     HardwareType hardwareIDFromString(const char *name) {
       for(int i=0; i<hardwareNames_count; i++) {
@@ -561,24 +554,22 @@ namespace RFLink { namespace Radio  {
     {
       if(hardware == HardwareType::HW_basic_t)
         set_Radio_mode_generic(new_State, force);
-
-        /*
+#ifndef SONOFF_RFBRIDGE
       else if( hardware == HardwareType::HW_RFM69CW_t || hardware == HardwareType::HW_RFM69HCW_t )
-        //set_Radio_mode_RFM69_new(new_State);
         set_Radio_mode_RFM69(new_State, force);
-      else if( hardware == HardwareType::HW_RFM69NEW_t)
-        set_Radio_mode_RFM69_new(new_State, force);
       else if( hardware == HardwareType::HW_SX1278_t )
         set_Radio_mode_SX1278(new_State, force);
       else if( hardware == HardwareType::HW_SX1276_t )
         set_Radio_mode_SX1276(new_State, force);
-        */
+#endif // not SONOFF_RFBRIDGE
       else
         Serial.printf_P(PSTR("Error while trying to switch Radio state: unknown hardware id '%i'\r\n"), new_State);
     }
 
     void setup() {
-     // refreshParametersFromConfig();
+#ifndef SONOFF_RFBRIDGE
+      refreshParametersFromConfig();
+#endif // not SONOFF_RFBRIDGE
     }
 
     void enableRX_generic()
@@ -649,44 +640,8 @@ namespace RFLink { namespace Radio  {
       pinMode(pins::TX_VCC, INPUT);
       pinMode(pins::TX_GND, INPUT);
     }
-/*
-    void set_Radio_mode_RFM69(States new_State, bool force)
-    {
-      // @TODO : review compatibility with ASYNC mode
-      if (current_State != new_State || force)
-      {
-        switch (new_State)
-        {
-          case Radio_OFF:
-            if( RFLink::Signal::params::async_mode_enabled )
-              RFLink::Signal::AsyncSignalScanner::stopScanning();
-            radio.sleep();
-            break;
 
-          case Radio_RX:
-            radio.transmitEnd();
-            pinMode(pins::RX_DATA, INPUT);
-            radio.receiveBegin();
-            if( RFLink::Signal::params::async_mode_enabled )
-              RFLink::Signal::AsyncSignalScanner::startScanning();
-            break;
-
-          case Radio_TX:
-            if( RFLink::Signal::params::async_mode_enabled )
-              RFLink::Signal::AsyncSignalScanner::stopScanning();
-            radio.receiveEnd();
-            pinMode(pins::TX_DATA, OUTPUT);
-            radio.setPowerLevel(1);
-            radio.transmitBegin();
-            break;
-
-          case Radio_NA:
-            break;
-        }
-        current_State = new_State;
-      }
-    }
-
+#ifndef SONOFF_RFBRIDGE
     void set_Radio_mode_SX1278(States new_State, bool force)
     {
       // @TODO : review compatibility with ASYNC mode
@@ -817,10 +772,7 @@ namespace RFLink { namespace Radio  {
       }
     }
 
-
-
-
-    void set_Radio_mode_RFM69_new(States new_State, bool force)
+    void set_Radio_mode_RFM69(States new_State, bool force)
     {
       // @TODO : review compatibility with ASYNC mode
       if (current_State != new_State || force)
@@ -874,6 +826,11 @@ namespace RFLink { namespace Radio  {
               hardwareProperlyInitialized = false;
             }
 
+            if(hardware == HardwareType::HW_RFM69HCW_t)
+              radio_RFM69->setOutputPower(13, true);
+            else
+              radio_RFM69->setOutputPower(13, false);
+
             break;
           }
 
@@ -883,15 +840,18 @@ namespace RFLink { namespace Radio  {
         current_State = new_State;
       }
     }
+#endif // not SONOFF_RFBRIDGE
 
-*/
+
     float getCurrentRssi() {
-      // if(hardware == HardwareType::HW_SX1278_t)
-      //   return radio_SX1278->getRSSI(true);
-      // if(hardware == HardwareType::HW_SX1276_t)
-      //   return radio_SX1276->getRSSI(true);
-      // if(hardware == HardwareType::HW_RFM69NEW_t)
-      //   return radio_RFM69->getRSSI();
+#ifndef SONOFF_RFBRIDGE
+      if(hardware == HardwareType::HW_SX1278_t)
+        return radio_SX1278->getRSSI(true);
+      if(hardware == HardwareType::HW_SX1276_t)
+        return radio_SX1276->getRSSI(true);
+      if(hardware == HardwareType::HW_RFM69CW_t || hardware == HardwareType::HW_RFM69HCW_t)
+        return radio_RFM69->getRSSI();
+#endif // not SONOFF_RFBRIDGE
 
       return -9999.0F;
     }
@@ -917,22 +877,24 @@ namespace RFLink { namespace Radio  {
       bool success = false;
       hardware = newHardware;
 
-      // if(newHardware == HardwareType::HW_SX1278_t){
-      //   success = initialize_SX1278();
-      // }
-      // else if(newHardware == HardwareType::HW_SX1276_t){
-      //   success = initialize_SX1276();
-      // }
-      // else if(newHardware == HardwareType::HW_RFM69CW_t || newHardware == HardwareType::HW_RFM69HCW_t){
-      //   success = initialize_RFM69_legacy();
-      // }
-      // else if(newHardware == HardwareType::HW_RFM69NEW_t){
-      //   success = initialize_RFM69();
-      // }
-      // else 
+#ifdef SONOFF_RFBRIDGE
       if(newHardware == HardwareType::HW_basic_t){
         success = true;
       }
+#else // not defined(SONOFF_RFBRIDGE)
+      if(newHardware == HardwareType::HW_SX1278_t){
+        success = initialize_SX1278();
+      }
+      else if(newHardware == HardwareType::HW_SX1276_t){
+        success = initialize_SX1276();
+      }
+      else if(newHardware == HardwareType::HW_RFM69CW_t || newHardware == HardwareType::HW_RFM69HCW_t){
+        success = initialize_RFM69();
+      }
+      else if(newHardware == HardwareType::HW_basic_t){
+        success = true;
+      }
+#endif // not SONOFF_RFBRIDGE
       else {
         RFLink::sendRawPrint(F("Unsupported hardwareId="));
         RFLink::sendRawPrint((int)newHardware);
@@ -948,9 +910,7 @@ namespace RFLink { namespace Radio  {
       }
     }
 
-
-    /*
-
+#ifndef SONOFF_RFBRIDGE
     bool initialize_SX1278() {
       radioLibModule = Module(pins::RX_CS, -1, pins::RX_RESET, -1);
       if(radio_SX1278 == nullptr)
@@ -989,11 +949,11 @@ namespace RFLink { namespace Radio  {
       if(params::rssiThresholdType != RssiThresholdTypesEnum::Undefined)
         newType = params::rssiThresholdType;
       if(newType == RssiThresholdTypesEnum::Peak)
-        result = radio_SX1278->setOokThresholdType(SX127X_OOK_THRESH_PEAK);
+        result = radio_SX1278->setOokThresholdType(RADIOLIB_SX127X_OOK_THRESH_PEAK);
       else if(newType == RssiThresholdTypesEnum::Fixed)
-        result = radio_SX1278->setOokThresholdType(SX127X_OOK_THRESH_FIXED);
+        result = radio_SX1278->setOokThresholdType(RADIOLIB_SX127X_OOK_THRESH_FIXED);
       else if(newType == RssiThresholdTypesEnum::Average)
-        result = radio_SX1278->setOokThresholdType(SX127X_OOK_THRESH_AVERAGE);
+        result = radio_SX1278->setOokThresholdType(RADIOLIB_SX127X_OOK_THRESH_AVERAGE);
       Serial.printf_P(PSTR("SX1278 setOokThresholdType(%i)=%i\r\n"), (int) newType, result);
       finalResult |= result;
 
@@ -1005,7 +965,7 @@ namespace RFLink { namespace Radio  {
       Serial.printf_P(PSTR("SX1278 setOokFixedThreshold(0x%.2X)=%i\r\n"), (int) newValue, result);
       finalResult |= result;
 
-      result = radio_SX1278->setOokPeakThresholdDecrement(SX127X_OOK_PEAK_THRESH_DEC_1_8_CHIP);
+      result = radio_SX1278->setOokPeakThresholdDecrement(RADIOLIB_SX127X_OOK_PEAK_THRESH_DEC_1_8_CHIP);
       Serial.printf_P(PSTR("SX1278 setOokPeakThresholdDecrement() result=%i\r\n"), result);
       finalResult |= result;
 
@@ -1062,11 +1022,11 @@ namespace RFLink { namespace Radio  {
       if(params::rssiThresholdType != RssiThresholdTypesEnum::Undefined)
         newType = params::rssiThresholdType;
       if(newType == RssiThresholdTypesEnum::Peak)
-        result = radio_SX1276->setOokThresholdType(SX127X_OOK_THRESH_PEAK);
+        result = radio_SX1276->setOokThresholdType(RADIOLIB_SX127X_OOK_THRESH_PEAK);
       else if(newType == RssiThresholdTypesEnum::Fixed)
-        result = radio_SX1276->setOokThresholdType(SX127X_OOK_THRESH_FIXED);
+        result = radio_SX1276->setOokThresholdType(RADIOLIB_SX127X_OOK_THRESH_FIXED);
       else if(newType == RssiThresholdTypesEnum::Average)
-        result = radio_SX1276->setOokThresholdType(SX127X_OOK_THRESH_AVERAGE);
+        result = radio_SX1276->setOokThresholdType(RADIOLIB_SX127X_OOK_THRESH_AVERAGE);
       Serial.printf_P(PSTR("SX1276 setOokThresholdType(%i)=%i\r\n"), (int) newType, result);
       finalResult |= result;
 
@@ -1078,7 +1038,7 @@ namespace RFLink { namespace Radio  {
       Serial.printf_P(PSTR("SX1276 setOokFixedThreshold(0x%.2X)=%i\r\n"), (int) newValue, result);
       finalResult |= result;
 
-      result = radio_SX1276->setOokPeakThresholdDecrement(SX127X_OOK_PEAK_THRESH_DEC_1_8_CHIP);
+      result = radio_SX1276->setOokPeakThresholdDecrement(RADIOLIB_SX127X_OOK_PEAK_THRESH_DEC_1_8_CHIP);
       Serial.printf_P(PSTR("SX1276 setOokPeakThresholdDecrement() result=%i\r\n"), result);
       finalResult |= result;
 
@@ -1136,11 +1096,11 @@ namespace RFLink { namespace Radio  {
       if(params::rssiThresholdType != RssiThresholdTypesEnum::Undefined)
         newType = params::rssiThresholdType;
       if(newType == RssiThresholdTypesEnum::Peak)
-        result = radio_RFM69->setOokThresholdType(RF69_OOK_THRESH_PEAK);
+        result = radio_RFM69->setOokThresholdType(RADIOLIB_RF69_OOK_THRESH_PEAK);
       else if(newType == RssiThresholdTypesEnum::Fixed)
-        result = radio_RFM69->setOokThresholdType(RF69_OOK_THRESH_FIXED);
+        result = radio_RFM69->setOokThresholdType(RADIOLIB_RF69_OOK_THRESH_FIXED);
       else if(newType == RssiThresholdTypesEnum::Average)
-        result = radio_RFM69->setOokThresholdType(RF69_OOK_THRESH_AVERAGE);
+        result = radio_RFM69->setOokThresholdType(RADIOLIB_RF69_OOK_THRESH_AVERAGE);
       Serial.printf_P(PSTR("RFM69 setOokThresholdType(%i)=%i\r\n"), (int) newType, result);
       finalResult |= result;
 
@@ -1151,7 +1111,7 @@ namespace RFLink { namespace Radio  {
       Serial.printf_P(PSTR("RFM69 setOokFixedThreshold(0x%.2X)=%i\r\n"), (int) newValue, result);
       finalResult |= result;
 
-      result = radio_RFM69->setOokPeakThresholdDecrement(RF69_OOK_PEAK_THRESH_DEC_1_8_CHIP);
+      result = radio_RFM69->setOokPeakThresholdDecrement(RADIOLIB_RF69_OOK_PEAK_THRESH_DEC_1_8_CHIP);
       Serial.printf_P(PSTR("RFM69 setOokPeakThresholdDecrement() result=%i\r\n"), result);
       finalResult |= result;
 
@@ -1161,19 +1121,8 @@ namespace RFLink { namespace Radio  {
 
       return finalResult == 0;
     }
+#endif // not SONOFF_RFBRIDGE
 
-    bool initialize_RFM69_legacy() {
-      radio.reset();
-      radio.initialize();
-      radio.setFrequency(params::frequency);
-      Serial.printf_P(PSTR("RFM69 initialized with Freq = %.2f\r\n"), (double)radio.getFrequency()/1000000);
-      //Serial.print("Temp = "); Serial.println(radio.readTemperature());
-      if(hardware == HardwareType::HW_RFM69HCW_t)
-        radio.setHighPower(true);
-      return true;
-    }
-
-    */
 
     void mainLoop() {
       static time_t nextEnablementAttemptTime = 0;

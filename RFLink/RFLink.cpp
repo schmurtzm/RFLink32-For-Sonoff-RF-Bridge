@@ -1,6 +1,6 @@
 // *********************************************************************************************************************************
-// * Portions GPLv3 2021 Christophe Painchaud https://github.com/cpainchaud/RFLink
-// * Arduino Project RFLink32 https://github.com/couin3/RFLink (Branch esp)
+// * Portions GPLv3 2021 Christophe Painchaud https://github.com/cpainchaud/RFLink32
+// * Arduino Project RFLink for ESP architecture https://github.com/couin3/RFLink (Branch esp)
 // * Portions Free Software 2018..2020 StormTeam - Marc RIVES
 // * Portions Free Software 2015..2016 StuntTeam - (RFLink R29~R33)
 // * Portions © Copyright 2010..2015 Paul Tonkes (original Nodo 3.7 code)
@@ -25,12 +25,16 @@
 #include "4_Display.h"
 #include "5_Plugin.h"
 #include "6_MQTT.h"
-//#include "8_OLED.h"
+#ifndef SONOFF_RFBRIDGE
+#include "8_OLED.h"
+#endif // not SONOFF_RFBRIDGE
 #include "9_Serial2Net.h"
 #include "10_Wifi.h"
 #include "11_Config.h"
 #include "12_Portal.h"
-//#include "13_OTA.h"
+#ifndef SONOFF_RFBRIDGE
+#include "13_OTA.h"
+#endif // not SONOFF_RFBRIDGE
 
 #if (defined(__AVR_ATmega328P__) || defined(__AVR_ATmega2560__))
 #include <avr/power.h>
@@ -129,6 +133,7 @@ namespace RFLink {
       RFLink::Signal::setup();
 
 #if defined(RFLINK_WIFI_ENABLED)
+      RFLink::Wifi::setup();
       #ifndef RFLINK_PORTAL_DISABLED
       RFLink::Portal::init();
       #endif // RFLINK_PORTAL_DISABLED
@@ -136,7 +141,6 @@ namespace RFLink {
       RFLink::Mqtt::setup_MQTT();
       #endif // RFLINK_MQTT_DISABLED
       RFLink::Serial2Net::setup();
-      RFLink::Wifi::setup();
 #endif // RFLINK_WIFI_ENABLED
 
 
@@ -195,14 +199,16 @@ namespace RFLink {
       }
 
       struct timeval now;
-      gettimeofday(&now, 0);
+      gettimeofday(&now, nullptr);
       if (scheduledRebootTime.tv_sec != 0 && now.tv_sec > scheduledRebootTime.tv_sec) {
         Serial.println(F("***** Rebooting now for scheduled reboot !!! *****"));
         ESP.restart();
       }
 
       Radio::mainLoop();
-      //OTA::mainLoop();
+#ifndef SONOFF_RFBRIDGE
+      OTA::mainLoop();
+#endif // not SONOFF_RFBRIDGE
     }
 
     void sendMsgFromBuffer() {
@@ -450,10 +456,12 @@ namespace RFLink {
         RFLink::sendRawPrint(F("Failed to obtain time"));
       }
 
+#ifdef SONOFF_RFBRIDGE
       // Little Patch to get the right boot time when connected to wifi ... Bug ?
       if (timeAtBoot.tv_sec == 0) {
         gettimeofday(&timeAtBoot, NULL);
       }
+#endif // SONOFF_RFBRIDGE
       output["uptime"] = now.tv_sec - timeAtBoot.tv_sec;
 
       output["heap_free"] = ESP.getFreeHeap();
@@ -467,12 +475,6 @@ namespace RFLink {
       output["sw_version"] = buffer;
 
     }
-
-    int64_t xx_time_get_time() {
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (tv.tv_sec * 1000LL + (tv.tv_usec / 1000LL));
-}
 
 }
 
