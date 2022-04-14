@@ -62,11 +62,17 @@ namespace RFLink
             #endif // RFLINK_PORTAL_DISABLED
 #endif
             &RFLink::Signal::configItems[0],
-          //  &RFLink::Radio::configItems[0],
+#ifndef SONOFF_RFBRIDGE
+            &RFLink::Radio::configItems[0],
+#endif // not SONOFF_RFBRIDGE
     };
 #define configItemListsSize (sizeof(configItemLists) / sizeof(ConfigItem *))
 
-    StaticJsonDocument<2048> doc;    // it use ram , if too low it will probably brake "Signals" api data. Default value 4096 , 1024 not recommanded
+#ifdef SONOFF_RFBRIDGE
+    StaticJsonDocument<2048> doc; // requires ram , too low will probably brake "Signals" api data. Default value 4096 , 1024 not recommended
+#else // not SONOFF_RFBRIDGE
+    StaticJsonDocument<4096> doc;
+#endif // not SONOFF_RFBRIDGE
 
     void resetConfig()
     {
@@ -325,7 +331,7 @@ namespace RFLink
       }
     };
 
-    bool pushNewConfiguration(JsonObject &data, String &message, bool escapeNewLine, bool triggerUpdateCallbacks)
+    bool pushNewConfiguration(const JsonObject &data, String &message, bool escapeNewLine, bool triggerUpdateCallbacks)
     {
 
       bool configHasChanged = false;

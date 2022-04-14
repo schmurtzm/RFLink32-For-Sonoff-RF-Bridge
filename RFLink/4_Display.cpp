@@ -632,7 +632,95 @@ void replacechar(char *str, char orig, char rep)
   }
 }
 
-#ifdef ESP8266
+#if defined(ESP8266) and !defined(SONOFF_RFBRIDGE)
+uint8_t String2GPIO(String sGPIO)
+{
+  byte num_part;
+  char cGPIO[4];
+
+  sGPIO.toCharArray(cGPIO, 4);
+
+  if (strlen(cGPIO) != 2)
+    return NOT_A_PIN;
+  if (cGPIO[0] != 'D')
+    return NOT_A_PIN;
+  if (isdigit(cGPIO[1]))
+    num_part = (cGPIO[1] - '0');
+  else
+    return NOT_A_PIN;
+
+  switch (num_part)
+  {
+  case 0:
+    return D0;
+    break;
+  case 1:
+    return D1;
+    break;
+  case 2:
+    return D2;
+    break;
+  case 3:
+    return D3;
+    break;
+  case 4:
+    return D4;
+    break;
+  case 5:
+    return D5;
+    break;
+  case 6:
+    return D6;
+    break;
+  case 7:
+    return D7;
+    break;
+  case 8:
+    return D8;
+    break;
+  default:
+    return NOT_A_PIN;
+  }
+}
+
+String GPIO2String(uint8_t uGPIO)
+{
+  switch (uGPIO)
+  {
+  case D0:
+    return "D0";
+    break;
+  case D1:
+    return "D1";
+    break;
+  case D2:
+    return "D2";
+    break;
+  case D3:
+    return "D3";
+    break;
+  case D4:
+    return "D4";
+    break;
+  case D5:
+    return "D5";
+    break;
+  case D6:
+    return "D6";
+    break;
+  case D7:
+    return "D7";
+    break;
+  case D8:
+    return "D8";
+    break;
+  default:
+    return "NOT_A_PIN";
+  }
+}
+#endif // ESP8266 and not SONOFF_RFBRIDGE
+
+#if defined(ESP32) || defined(SONOFF_RFBRIDGE)
 uint8_t String2GPIO(String sGPIO)
 {
   char cGPIO[4];
@@ -660,34 +748,4 @@ String GPIO2String(uint8_t uGPIO)
   else
     return "NOT_A_PIN";
 }
-#endif // ESP32
-
-#ifdef ESP32
-uint8_t String2GPIO(String sGPIO)
-{
-  char cGPIO[4];
-
-  sGPIO.trim();
-  sGPIO.toCharArray(cGPIO, 4);
-
-  switch (strlen(cGPIO))
-  {
-  case 1:
-    if (isdigit(cGPIO[0]))
-      return (cGPIO[0] - '0');
-  case 2:
-    if ((isdigit(cGPIO[0])) && (isdigit(cGPIO[1])))
-      return ((cGPIO[0] - '0') * 10 + (cGPIO[1] - '0'));
-  default:
-    return NOT_A_PIN;
-  }
-}
-
-String GPIO2String(uint8_t uGPIO)
-{
-  if (uGPIO < 40)
-    return String(uGPIO);
-  else
-    return "NOT_A_PIN";
-}
-#endif // ESP32
+#endif // ESP32 or SONOFF_RFBRIDGE

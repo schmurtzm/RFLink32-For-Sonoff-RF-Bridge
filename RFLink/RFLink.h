@@ -20,14 +20,18 @@
 #endif
 
 #ifndef DEFAULT_WIFI_CLIENT_HOSTNAME
+#ifdef SONOFF_RFBRIDGE
+#define DEFAULT_WIFI_CLIENT_HOSTNAME "RFLink-ESP"
+#else // not SONOFF_RFBRIDGE
 #define DEFAULT_WIFI_CLIENT_HOSTNAME "RFLink32"
+#endif // not SONOFF_RFBRIDGE
 #endif
 
 #define SERIAL_ENABLED // Send RFLink messages over Serial
 //#define RFLINK_AUTOOTA_ENABLED // if you want to the device to self-update at boot from a given URKL
                           // dont forget to set the URL in Crendentials.h
 
-//#define RFLINK_MQTT_DISABLED    // to disable MQTT
+//#define RFLINK_MQTT_DISABLED    // to disable MQTT entirely (not compiled at all)
 //#define RFLINK_PORTAL_DISABLED    // to disable Portal/Web UI
 
 #if (defined(ESP32) || defined(ESP8266))
@@ -37,20 +41,32 @@
 #define OLED_FLIP true   // default false
 
 // WIFI
+//#define RFLINK_WIFI_ENABLED
 #define WIFI_PWR_0 20 // 0~20.5dBm
 //#define RFLINK_SHOW_CONFIG_PORTAL_PIN_BUTTON 32 // if you want start the configuration portal with a button/pin
 #ifndef RFLINK_WIFIMANAGER_PORTAL_LONG_PRESS
 #define RFLINK_WIFIMANAGER_PORTAL_LONG_PRESS 1000 // milliseconds
 #endif
 
+// UI/Portal
+#define RFLINK_WEBUI_DEFAULT_USER "rflink32"
+#define RFLINK_WEBUI_DEFAULT_PASSWORD "433mhz"
+
 // MQTT messages
-//#define MQTT_ENABLED          // Send RFLink messages over MQTT
+#ifndef RFLink_default_MQTT_ENABLED
+  #define RFLink_default_MQTT_ENABLED false // Send RFLink messages over MQTT
+#endif
+#ifndef RFLink_default_MQTT_SSL_ENABLED
+  #define RFLink_default_MQTT_SSL_ENABLED false // Send MQTT messages over SSL
+#endif
 #define MQTT_LOOP_MS 1000     // MQTTClient.loop(); call period (in mSec)
 #define MQTT_RETAINED_0 false // Retained option
-#define MQTT_LWT              // Let know if Module is Online or Offline via MQTT Last Will message
-// #define MQTT_SSL           // Send MQTT messages over SSL
-// #define CHECK_CACERT       // Send MQTT SSL CA Certificate
+#ifndef RFLink_default_MQTT_LWT              // Let know if Module is Online or Offline via MQTT Last Will message
+  #define RFLink_default_MQTT_LWT true
 #endif
+// #define CHECK_CACERT       // Send MQTT SSL CA Certificate
+
+#endif // (defined(ESP32) || defined(ESP8266))
 
 // Debug default
 #define RFDebug_0 false   // debug RF signals with plugin 001 (no decode)

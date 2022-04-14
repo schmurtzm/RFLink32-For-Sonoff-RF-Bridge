@@ -89,6 +89,9 @@
 
 boolean Plugin_001(byte function, const char *string)
 {
+    if (string == NULL || RawSignal.Number == 0)
+        return false;
+
    // byte HEconversiontype = 1; // 0=No conversion, 1=conversion to Elro 58 pulse protocol (same as FA500R Method 1)
    //const long PULSE500 = PULSE500_D / RawSignal.Multiply;
    const long PULSE1100 = PULSE1100_D / RawSignal.Multiply;
@@ -233,11 +236,11 @@ boolean Plugin_001(byte function, const char *string)
                RFLink::sendRawPrint(',');
          }
       }
-      RFLink::sendRawPrint(PSTR(";RSSI="));
+      RFLink::sendRawPrint(F(";RSSI="));
       sprintf_P(dbuffer, PSTR("%i;"), (int)RawSignal.rssi);
       RFLink::sendRawPrint(dbuffer);
 
-      RFLink::sendRawPrint(PSTR("REASON="));
+      RFLink::sendRawPrint(F("REASON="));
       RFLink::sendRawPrint(Signal::endReasonToString(RawSignal.endReason));
       RFLink::sendRawPrint(F("\r\n"));
 

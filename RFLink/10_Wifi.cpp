@@ -12,8 +12,13 @@
 #include "6_MQTT.h"
 #include "9_Serial2Net.h"
 #include <time.h> // for NTP
-
-
+#ifdef ESP32
+extern "C" {
+  #include "bootloader_random.h"
+}
+#else // NOT ESP32
+  #include <ESP8266TrueRandom.h>
+#endif // ESP32
 
 
 #ifdef RFLINK_AUTOOTA_ENABLED
@@ -38,15 +43,18 @@ namespace RFLink { namespace Wifi {
             bool AP_enabled;
             String AP_ssid;
             String AP_password;
-            // String AP_ip;
-            // String AP_network;
-            // String AP_mask;
+#ifndef SONOFF_RFBRIDGE
+            String AP_ip;
+            String AP_network;
+            String AP_mask;
+#endif // not SONOFF_RFBRIDGE
         }
 
         bool clientParamsHaveChanged = false; // this will be set to True when Client Wifi mode configuration has changed
         bool accessPointParamsHaveChanged = false; // this will be set to True when Client Wifi mode configuration has changed
+        unsigned short int cpWifiChannel = 1; // channel for CaptivePortal (will be randomized later)
 
-// All json variable names
+        // All json variable names
         const char json_name_client_enabled[] = "client_enabled";
         const char json_name_client_dhcp_enabled[] = "client_dhcp_enabled";
         const char json_name_client_ssid[] = "client_ssid";
@@ -60,9 +68,11 @@ namespace RFLink { namespace Wifi {
         const char json_name_ap_enabled[] = "ap_enabled";
         const char json_name_ap_ssid[] = "ap_ssid";
         const char json_name_ap_password[] = "ap_password";
-        // const char json_name_ap_ip[] = "ap_ip";
-        // const char json_name_ap_network[] = "ap_network";
-        // const char json_name_ap_mask[] = "ap_mask";
+#ifndef SONOFF_RFBRIDGE
+        const char json_name_ap_ip[] = "ap_ip";
+        const char json_name_ap_network[] = "ap_network";
+        const char json_name_ap_mask[] = "ap_mask";
+#endif // not SONOFF_RFBRIDGE
 // end of json variable names
 
 
@@ -80,9 +90,11 @@ namespace RFLink { namespace Wifi {
                 Config::ConfigItem(json_name_ap_enabled,  Config::SectionId::Wifi_id, true, accessPointParamsUpdatedCallback),
                 Config::ConfigItem(json_name_ap_ssid,     Config::SectionId::Wifi_id, "RFLink-AP", accessPointParamsUpdatedCallback),
                 Config::ConfigItem(json_name_ap_password, Config::SectionId::Wifi_id, "", accessPointParamsUpdatedCallback),
-                // Config::ConfigItem(json_name_ap_ip,       Config::SectionId::Wifi_id, "192.168.4.1", accessPointParamsUpdatedCallback),
-                // Config::ConfigItem(json_name_ap_network,  Config::SectionId::Wifi_id, "192.168.4.0", accessPointParamsUpdatedCallback),
-                // Config::ConfigItem(json_name_ap_mask,     Config::SectionId::Wifi_id, "255.255.255.0", accessPointParamsUpdatedCallback),
+#ifndef SONOFF_RFBRIDGE
+                Config::ConfigItem(json_name_ap_ip,       Config::SectionId::Wifi_id, "192.168.4.1", accessPointParamsUpdatedCallback),
+                Config::ConfigItem(json_name_ap_network,  Config::SectionId::Wifi_id, "192.168.4.0", accessPointParamsUpdatedCallback),
+                Config::ConfigItem(json_name_ap_mask,     Config::SectionId::Wifi_id, "255.255.255.0", accessPointParamsUpdatedCallback),
+#endif // not SONOFF_RFBRIDGE
 
                 Config::ConfigItem()
         };
@@ -176,23 +188,25 @@ namespace RFLink { namespace Wifi {
             params::AP_password = item->getCharValue();
           }
 
-          // item = Config::findConfigItem(json_name_ap_ip, Config::SectionId::Wifi_id);
-          // if( params::AP_ip != item->getCharValue() ) {
-          //   changesDetected = true;
-          //   params::AP_ip = item->getCharValue();
-          // }
+#ifndef SONOFF_RFBRIDGE
+          item = Config::findConfigItem(json_name_ap_ip, Config::SectionId::Wifi_id);
+          if( params::AP_ip != item->getCharValue() ) {
+            changesDetected = true;
+            params::AP_ip = item->getCharValue();
+          }
 
-          // item = Config::findConfigItem(json_name_ap_network, Config::SectionId::Wifi_id);
-          // if( params::AP_network != item->getCharValue() ) {
-          //   changesDetected = true;
-          //   params::AP_network = item->getCharValue();
-          // }
+          item = Config::findConfigItem(json_name_ap_network, Config::SectionId::Wifi_id);
+          if( params::AP_network != item->getCharValue() ) {
+            changesDetected = true;
+            params::AP_network = item->getCharValue();
+          }
 
-          // item = Config::findConfigItem(json_name_ap_mask, Config::SectionId::Wifi_id);
-          // if( params::AP_mask != item->getCharValue() ) {
-          //   changesDetected = true;
-          //   params::AP_mask = item->getCharValue();
-          // }
+          item = Config::findConfigItem(json_name_ap_mask, Config::SectionId::Wifi_id);
+          if( params::AP_mask != item->getCharValue() ) {
+            changesDetected = true;
+            params::AP_mask = item->getCharValue();
+          }
+#endif // not SONOFF_RFBRIDGE
 
           // Applying changes will happen in mainLoop()
           if(triggerChanges && changesDetected) {
@@ -273,8 +287,8 @@ namespace RFLink { namespace Wifi {
           }
 
           if( params::AP_enabled ) {
-            Serial.printf_P(PSTR("* WIFI AP starting with SSID '%s'... "), params::AP_ssid.c_str());
-            if( !WiFi.softAP(params::AP_ssid.c_str(), params::AP_password.c_str()) )
+            Serial.printf_P(PSTR("* WIFI AP starting with SSID '%s' and band=%i... "), params::AP_ssid.c_str(), cpWifiChannel);
+            if( !WiFi.softAP(params::AP_ssid.c_str(), params::AP_password.c_str()),  cpWifiChannel)
               Serial.println(F("FAILED"));
             else
               Serial.println(F("OK"));
@@ -437,6 +451,13 @@ void eventHandler_WiFiStationDisconnected(const WiFiEventStationModeDisconnected
 
         void setup()
         {
+          #ifdef ESP32
+          bootloader_random_enable();
+          cpWifiChannel = esp_random()%13 + 1;
+          bootloader_random_disable();
+          #else
+          cpWifiChannel = ESP8266TrueRandom.random(1,13);
+          #endif // ESP32
 
           refreshClientParametersFromConfig(false);
           refreshAccessPointParametersFromConfig(false);
@@ -487,14 +508,14 @@ void eventHandler_WiFiStationDisconnected(const WiFiEventStationModeDisconnected
 
             Serial.println(F("Applying new Wifi AP settings"));
 
-#ifdef ESP32
+            #ifdef ESP32
             bool isEnabled = ((WiFi.getMode() & WIFI_MODE_AP) != 0);
 
             if(params::AP_enabled) {
               if(!isEnabled)
                 WiFi.enableAP(true);
 
-              if( !WiFi.softAP(params::AP_ssid.c_str(), params::AP_password.c_str()) )
+              if( !WiFi.softAP(params::AP_ssid.c_str(), params::AP_password.c_str()), cpWifiChannel )
                 Serial.println("WIFI AP start FAILED");
               else
                 Serial.println("WIFI AP started");
@@ -502,19 +523,20 @@ void eventHandler_WiFiStationDisconnected(const WiFiEventStationModeDisconnected
               Serial.println("Shutting down AP");
               WiFi.enableAP(false);
             }
-#endif
-#ifdef ESP8266
+            #endif
+            #ifdef ESP8266
             if(params::AP_enabled) {
-        WiFi.enableAP(true);
-        if( !WiFi.softAP(params::AP_ssid.c_str(), params::AP_password.c_str()) )
-          Serial.println(F("WIFI AP start FAILED"));
-        else
-          Serial.println(F("WIFI AP started"));
-    } else {
-      Serial.println(F("Shutting down AP"));
-      WiFi.enableAP(false);
-    }
-#endif
+                Serial.printf_P(PSTR("* WIFI AP starting with SSID '%s'... "), params::AP_ssid.c_str());
+                WiFi.enableAP(true);
+                if( !WiFi.softAP(params::AP_ssid.c_str(), params::AP_password.c_str()), cpWifiChannel )
+                  Serial.println(F("WIFI AP start FAILED"));
+                else
+                  Serial.println(F("WIFI AP started"));
+            } else {
+              Serial.println(F("Shutting down AP"));
+              WiFi.enableAP(false);
+            }
+            #endif
           } // end of accessPointParamsHaveChanges
 
           if( clientParamsHaveChanged ) {

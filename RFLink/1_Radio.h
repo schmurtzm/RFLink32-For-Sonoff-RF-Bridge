@@ -23,20 +23,36 @@
 #ifdef ESP8266
 // ESP8266 D1 Mini
 #define PIN_RF_RX_PMOS_0 NOT_A_PIN // High Side P-MOSFET, active on LOW level
+#ifdef SONOFF_RFBRIDGE
 #define PIN_RF_RX_NMOS_0 14        // Low Side N-MOSFET, active on HIGH level
+#else // not SONOFF_RFBRIDGE
+#define PIN_RF_RX_NMOS_0 D5        // Low Side N-MOSFET, active on HIGH level
+#endif // not SONOFF_RFBRIDGE
 #define PIN_RF_RX_VCC_0 NOT_A_PIN  // Power to the receiver on this pin
 #define PIN_RF_RX_GND_0 NOT_A_PIN  // Ground to the receiver on this pin
 #define PIN_RF_RX_NA_0 NOT_A_PIN   // Alt. RX_DATA. Forced as input
-#define PIN_RF_RX_DATA_0 4        // On this input, the 433Mhz-RF signal is received. LOW when no signal.
+#ifdef SONOFF_RFBRIDGE
+#define PIN_RF_RX_DATA_0 4         // On this input, the 433Mhz-RF signal is received. LOW when no signal.
+#else // not SONOFF_RFBRIDGE
+#define PIN_RF_RX_DATA_0 D6        // On this input, the 433Mhz-RF signal is received. LOW when no signal.
+#endif // not SONOFF_RFBRIDGE
 #define PIN_RF_RX_RESET NOT_A_PIN  // pin to reset transceiver
 #define PIN_RF_RX_CS NOT_A_PIN     // Used for SPI "Slave Select"
 
 #define PIN_RF_TX_PMOS_0 NOT_A_PIN // High Side P-MOSFET, active on LOW level
+#ifdef SONOFF_RFBRIDGE
 #define PIN_RF_TX_NMOS_0 13        // Low Side N-MOSFET, active on HIGH level
+#else // not SONOFF_RFBRIDGE
+#define PIN_RF_TX_NMOS_0 D7        // Low Side N-MOSFET, active on HIGH level
+#endif // not SONOFF_RFBRIDGE
 #define PIN_RF_TX_VCC_0 NOT_A_PIN  // +5 volt / Vcc power to the transmitter on this pin
 #define PIN_RF_TX_GND_0 NOT_A_PIN  // Ground power to the transmitter on this pin
 #define PIN_RF_TX_NA_0 NOT_A_PIN   // Spare RX pin. Forced as input
-#define PIN_RF_TX_DATA_0 5        // Data to the 433Mhz transmitter on this pin
+#ifdef SONOFF_RFBRIDGE
+#define PIN_RF_TX_DATA_0 5         // Data to the 433Mhz transmitter on this pin
+#else // not SONOFF_RFBRIDGE
+#define PIN_RF_TX_DATA_0 D4        // Data to the 433Mhz transmitter on this pin
+#endif // not SONOFF_RFBRIDGE
 #endif
 
 #ifdef ESP32
@@ -75,7 +91,6 @@ namespace RFLink { namespace Radio {
         HW_RFM69CW_t,
         HW_RFM69HCW_t,
         HW_SX1278_t,
-        HW_RFM69NEW_t,
         HW_SX1276_t,
         HW_EOF_t,
     };
@@ -138,14 +153,10 @@ namespace RFLink { namespace Radio {
     /**
      * don't use directly unless you know what you are doing.
      * */
-    void set_Radio_mode_RFM69_new(States new_state, bool force=false);
+    void set_Radio_mode_RFM69(States new_state, bool force=false);
     /**
     * don't use directly unless you know what you are doing.
     * */
-    void set_Radio_mode_RFM69(States new_state, bool force=false);
-    /**
-     * don't use directly unless you know what you are doing.
-     * */
     void set_Radio_mode_SX1278(States new_state, bool force=false);
     /**
      * don't use directly unless you know what you are doing.
@@ -180,7 +191,6 @@ namespace RFLink { namespace Radio {
     bool initialize_SX1278();
     bool initialize_SX1276();
     bool initialize_RFM69();
-    bool initialize_RFM69_legacy();
 
 }}
 

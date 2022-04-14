@@ -8,7 +8,7 @@
 #include "../7_Utils.h"
 
 #define PLUGIN_016_ID "Silvercrest"
-#define PLUGIN_016_DEBUG
+//#define PLUGIN_016_DEBUG
 
 const int SLVCR_BitCount = 24;
 const int8_t SLVCR_CodeCount = 8;
@@ -19,15 +19,16 @@ boolean Plugin_016(byte function, const char *string)
 {
    const int SLVCR_MinPulses = 180;
    const int SLVCR_MaxPulses = 320;
-   const int SLVCR_StartPulseDuration = 2000 / RawSignal.Multiply;
-   const int SLVCR_LongPulseMinDuration = 900 / RawSignal.Multiply;
-   const int SLVCR_LongPulseMaxDuration = 1400 / RawSignal.Multiply;
-   const int SLVCR_ShortPulseMinDuration = 200 / RawSignal.Multiply;
-   const int SLVCR_ShortPulseMaxDuration = 600 / RawSignal.Multiply;
-   const int SLVCR_PulsesCount = SLVCR_BitCount * 2;
 
    if (RawSignal.Number >= SLVCR_MinPulses && RawSignal.Number <= SLVCR_MaxPulses) 
    {
+      const int SLVCR_StartPulseDuration = 2000 / RawSignal.Multiply;
+      const int SLVCR_LongPulseMinDuration = 900 / RawSignal.Multiply;
+      const int SLVCR_LongPulseMaxDuration = 1400 / RawSignal.Multiply;
+      const int SLVCR_ShortPulseMinDuration = 200 / RawSignal.Multiply;
+      const int SLVCR_ShortPulseMaxDuration = 600 / RawSignal.Multiply;
+      const int SLVCR_PulsesCount = SLVCR_BitCount * 2;
+
       // Look for an overly long "off" pulse, followed by SLVCR_PulsesCount then again by an overly long "off" pulse
       // Ignore the first pulses, they are too noisy to be reliable
       int pulseIndex = 30; 
@@ -51,7 +52,6 @@ boolean Plugin_016(byte function, const char *string)
             #ifdef PLUGIN_016_DEBUG
             Serial.println(F(PLUGIN_016_ID ": Could not decode PWM!"));
             #endif
-            return false;
             return false;
          }
 
